@@ -21,8 +21,8 @@ internal class CSF_Plugin : BaseUnityPlugin
         CSF_Logger = Logger;
         CSF_Logger.LogInfo($"{nameof(CSF_Plugin)} has been loaded.");
 
-        ShowListingPrice = Config.Bind("QuickSellFlea", "Show Listing Price", true,
-            new ConfigDescription("Whether to show the listing price in the tooltip, otherwise the total sell value"));
+        ShowListingPrice = Config.Bind("QuickSellFlea", "Show Listing Price", false,
+            new ConfigDescription("Whether to show the listing price in the tooltip, otherwise the total sell value (of all items in the stack, if stackable)"));
 
         new ItemUiContext_GetItemContextInteractions_Patch().Enable();
     }
