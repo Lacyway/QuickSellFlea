@@ -31,7 +31,7 @@ internal class CSF_Plugin : BaseUnityPlugin
 public struct PostPriceData(RagFairClass ragFair, ContextInteractionsAbstractClass interactionsClass,
         ItemUiContext itemUiContext, ItemInfoInteractionsAbstractClass<EItemInfoButton> infoInteractionsClass,
         Dictionary<EItemInfoButton, string> itemInfoDict, InventoryController inventoryController,
-        ItemContextAbstractClass itemContext, HandbookClass handbookClass)
+        ItemContextAbstractClass itemContext, HandbookClass handbookClass, bool selectAll)
 {
     public readonly Item Item => ItemContext.Item;
 
@@ -43,7 +43,9 @@ public struct PostPriceData(RagFairClass ragFair, ContextInteractionsAbstractCla
     public readonly InventoryController InventoryController = inventoryController;
     public readonly ItemContextAbstractClass ItemContext = itemContext;
     public readonly HandbookClass HandbookClass = handbookClass;
+    public readonly bool SelectAll = selectAll;
     public readonly Dictionary<Item, ItemAddress> OfferDict = [];
+    public List<Item> Items;
 
     public float AveragePrice;
 }

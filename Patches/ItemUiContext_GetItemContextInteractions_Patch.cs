@@ -2,6 +2,7 @@
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.Ragfair;
+using HarmonyLib;
 using SPT.Reflection.Patching;
 using System.Reflection;
 using UnityEngine;
@@ -135,7 +136,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         _postPriceData = new(ragFair, gclass,
             __instance, ___gclass3753_0,
             ___dictionary_0, ___inventoryController_0, itemContext,
-            __instance.HandbookClass);
+            __instance.HandbookClass, Input.GetKey(KeyCode.LeftShift));
 
         ragFair.ISession.RagfairGetPrices(ReceivedPrices);
     }
@@ -175,25 +176,60 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         Logger.LogInfo($"Searching for posting price for {_postPriceData.Item.LocalizedShortName()}, with a stack amount of {_postPriceData.Item.StackObjectsCount}" +
             $" and requirementsPrice of {averagePrice}");
 #endif
+
+        if (_postPriceData.SelectAll)
+        {
+#if DEBUG
+            Logger.LogInfo("Posting all of similar type"); 
+#endif
+            CompoundItem[] array =
+            [
+                _postPriceData.InventoryController.Inventory.Stash
+            ];
+            using RagfairOfferSellHelperClass helper = new(array[0].Grids[0], _postPriceData.InventoryController);
+            var item = _postPriceData.Item;
+            _postPriceData.Items = [.. _postPriceData.Item.Parent.Container.Items.Where(i => i.Compare(_postPriceData.Item)
+                && RagFairClass.CanBeSelectedAtRagfair(item, helper.TraderControllerClass, out var error))
+                .OrderBy(i =>
+                {
+                    if (i != item)
+                    {
+                        return 2;
+                    }
+
+                    return 1;
+                })];
+
+            if (!_postPriceData.Items.Any())
+            {
+                _postPriceData.Items.Add(item);
+            }
+        }
+        else
+        {
+            _postPriceData.Items = [_postPriceData.Item];
+        }
+
         var postPrice = 0f;
+        var count = _postPriceData.Items.Sum(i => i.StackObjectsCount);
         if (CSF_Plugin.ShowListingPrice.Value)
         {
             postPrice = Mathf.CeilToInt(
-                (float)FleaTaxCalculatorAbstractClass.CalculateTaxPrice(_postPriceData.Item, _postPriceData.Item.StackObjectsCount,
+                (float)FleaTaxCalculatorAbstractClass.CalculateTaxPrice(_postPriceData.Item, count,
                 averagePrice, false)
             );
         }
         else
         {
-            postPrice = averagePrice * _postPriceData.Item.StackObjectsCount;
+            postPrice = _postPriceData.AveragePrice * count;
         }
 
 #if DEBUG
-        Logger.LogInfo($"Posting price was {postPrice} roubles");
+        Logger.LogInfo($"Posting price was {postPrice} roubles, amount was {count} with {_postPriceData.Items.Count} stacks");
 #endif
-
+        var label = count > 1 ? $"[{_postPriceData.Items.Count}s, {count}x] {postPrice.FormatSeparate()}" : $"{postPrice.FormatSeparate()}";
         var dynamicInteractions = _postPriceData.InteractionsClass.Dictionary_0 ?? [];
-        dynamicInteractions[$"QUICK OFFER ({postPrice.FormatSeparate()} ₽)"] = new("QUICKOFFER", $"QUICK OFFER ({postPrice.FormatSeparate()} ₽)",
+        dynamicInteractions[$"QUICK OFFER ({label} ₽)"] = new("QUICKOFFER", $"QUICK OFFER ({label} ₽)",
             ClickQuickOffer, CacheResourcesPopAbstractClass.Pop<Sprite>("Characteristics/Icons/AddOffer"));
 
         _postPriceData.ItemUiContext.ContextMenu.Show(_postPriceData.ItemUiContext.ContextMenu.transform.position,
@@ -203,11 +239,13 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
     private static void ClickQuickOffer()
     {
         _canPost = false;
+        var toPost = _postPriceData.Items.Select(i => i.Id)
+            .ToArray();
 
         _postPriceData.OfferDict.Add(_postPriceData.Item, _postPriceData.Item.Parent);
         _postPriceData.Item.Parent.RaiseRemoveEvent(_postPriceData.Item, CommandStatus.Begin, _postPriceData.InventoryController);
         Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.TradeOperationComplete);
-        _postPriceData.RagFair.AddOffer(false, [_postPriceData.Item.Id], [
+        _postPriceData.RagFair.AddOffer(false, toPost, [
                 new()
                 {
                     _tpl = "5449016a4bdc2d6f028b456f",
