@@ -69,7 +69,7 @@
 		<PropertyGroup>
 			<ReleaseDir>$(ProjectDir)release</ReleaseDir>
 			<ZipPath>$(ReleaseDir)\$(ProjectName).zip</ZipPath>
-			<TempDir>$(ReleaseDir)\temp\bepinex\plugins\$(ProjectName)</TempDir>
+			<TempDir>$(ReleaseDir)\temp\BepInEx\plugins\$(ProjectName)</TempDir>
 			<OutputDll>$(TargetDir)$(ProjectName).dll</OutputDll>
 			<LicenseFile>$(ProjectDir)License.md</LicenseFile>
 		</PropertyGroup>
