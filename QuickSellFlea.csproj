@@ -88,7 +88,7 @@
 		<Copy SourceFiles="$(LicenseFile)" DestinationFolder="$(TempDir)" Condition="Exists('$(LicenseFile)')" />
 
 		<!-- Create the zip file -->
-		<Exec Command="powershell -NoLogo -NoProfile -Command &quot;Compress-Archive -Path '$(ReleaseDir)\temp\*' -DestinationPath '$(ZipPath)' -Force&quot;" />
+		<ZipDirectory SourceDirectory="$(ReleaseDir)\temp" DestinationFile="$(ZipPath)" Overwrite="true" />
 
 		<!-- Clean up temp folder -->
 		<RemoveDir Directories="$(ReleaseDir)\temp" />
