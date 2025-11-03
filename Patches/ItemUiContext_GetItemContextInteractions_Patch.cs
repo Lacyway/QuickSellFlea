@@ -242,8 +242,13 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         var toPost = _postPriceData.Items.Select(i => i.Id)
             .ToArray();
 
-        _postPriceData.OfferDict.Add(_postPriceData.Item, _postPriceData.Item.Parent);
-        _postPriceData.Item.Parent.RaiseRemoveEvent(_postPriceData.Item, CommandStatus.Begin, _postPriceData.InventoryController);
+        for (var i = 0; i < _postPriceData.Items.Count; i++)
+        {
+            var item = _postPriceData.Items[i];
+            _postPriceData.OfferDict.Add(item, item.Parent);
+            _postPriceData.Item.Parent.RaiseRemoveEvent(item, CommandStatus.Begin, _postPriceData.InventoryController);
+        }
+        
         Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.TradeOperationComplete);
         _postPriceData.RagFair.AddOffer(false, toPost, [
                 new()
