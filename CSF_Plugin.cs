@@ -10,7 +10,7 @@ namespace QuickSellFlea;
 [BepInPlugin("com.lacyway.csf", "QuickSellFlea", PluginVersion)]
 internal class CSF_Plugin : BaseUnityPlugin
 {
-    public const string PluginVersion = "1.1.1";
+    public const string PluginVersion = "1.1.2";
 
     internal static ManualLogSource CSF_Logger;
 

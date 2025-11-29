@@ -2,7 +2,6 @@
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.Ragfair;
-using HarmonyLib;
 using SPT.Reflection.Patching;
 using System.Reflection;
 using UnityEngine;
@@ -73,6 +72,14 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         {
 #if DEBUG
             Logger.LogWarning("Ragfair was not available");
+#endif
+            return;
+        }
+
+        if (RagFairClass.Settings.isOnlyFoundInRaidAllowed && !itemContext.Item.CanSellOnRagfairRaidRelated)
+        {
+#if DEBUG
+            Logger.LogWarning("Flea only allows FiR, but item is not FiR, skipping"); 
 #endif
             return;
         }
@@ -180,7 +187,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         if (_postPriceData.SelectAll)
         {
 #if DEBUG
-            Logger.LogInfo("Posting all of similar type"); 
+            Logger.LogInfo("Posting all of similar type");
 #endif
             CompoundItem[] array =
             [
@@ -248,7 +255,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             _postPriceData.OfferDict.Add(item, item.Parent);
             _postPriceData.Item.Parent.RaiseRemoveEvent(item, CommandStatus.Begin, _postPriceData.InventoryController);
         }
-        
+
         Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.TradeOperationComplete);
         _postPriceData.RagFair.AddOffer(false, toPost, [
                 new()
