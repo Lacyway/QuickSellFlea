@@ -12,6 +12,8 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
 {
     private static PostPriceData _postPriceData;
     private const string _roubleTpl = "5449016a4bdc2d6f028b456f";
+    private const string _dollarTpl = "5696686a4bdc2da3298b456a";
+    private const string _euroTpl = "569668774bdc2da2298b4568";
     private static bool _canPost = true;
 
 
@@ -229,6 +231,25 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         else
         {
             postPrice = _postPriceData.AveragePrice * count;
+
+            if (CSF_Plugin.PostingCurrency.Value is not EPostingCurrency.RUB)
+            {
+                postPrice = MathF.Round(postPrice / (float)CSF_Plugin.PostingCurrency.Value, 0, MidpointRounding.AwayFromZero);
+            }
+        }
+
+        var symbol = string.Empty;
+        switch (CSF_Plugin.PostingCurrency.Value)
+        {
+            case EPostingCurrency.RUB:
+                symbol = "₽";
+                break;
+            case EPostingCurrency.USD:
+                symbol = "$";
+                break;
+            case EPostingCurrency.EUR:
+                symbol = "€";
+                break;
         }
 
 #if DEBUG
@@ -236,7 +257,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
 #endif
         var label = count > 1 ? $"[{_postPriceData.Items.Count}s, {count}x] {postPrice.FormatSeparate()}" : $"{postPrice.FormatSeparate()}";
         var dynamicInteractions = _postPriceData.InteractionsClass.Dictionary_0 ?? [];
-        dynamicInteractions[$"QUICK OFFER ({label} ₽)"] = new("QUICKOFFER", $"QUICK OFFER ({label} ₽)",
+        dynamicInteractions[$"QUICK OFFER ({label} {symbol})"] = new("QUICKOFFER", $"QUICK OFFER ({label} {symbol})",
             ClickQuickOffer, CacheResourcesPopAbstractClass.Pop<Sprite>("Characteristics/Icons/AddOffer"));
 
         _postPriceData.ItemUiContext.ContextMenu.Show(_postPriceData.ItemUiContext.ContextMenu.transform.position,
@@ -256,14 +277,33 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             _postPriceData.Item.Parent.RaiseRemoveEvent(item, CommandStatus.Begin, _postPriceData.InventoryController);
         }
 
-        Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.TradeOperationComplete);
-        _postPriceData.RagFair.AddOffer(false, toPost, [
-                new()
+        GClass2335 postData = null;
+        switch (CSF_Plugin.PostingCurrency.Value)
+        {
+            case EPostingCurrency.RUB:
+                postData = new()
                 {
-                    _tpl = "5449016a4bdc2d6f028b456f",
+                    _tpl = _roubleTpl,
                     count = _postPriceData.AveragePrice
-                }
-            ],
-            HandlePostAddOffer);
+                };
+                break;
+            case EPostingCurrency.USD:
+                postData = new()
+                {
+                    _tpl = _dollarTpl,
+                    count = ConversionUtils.ConvertToUSD(_postPriceData.AveragePrice)
+                };
+                break;
+            case EPostingCurrency.EUR:
+                postData = new()
+                {
+                    _tpl = _euroTpl,
+                    count = ConversionUtils.ConvertToEUR(_postPriceData.AveragePrice)
+                };
+                break;
+        }
+
+        Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.TradeOperationComplete);
+        _postPriceData.RagFair.AddOffer(false, toPost, [postData], HandlePostAddOffer);
     }
 }
