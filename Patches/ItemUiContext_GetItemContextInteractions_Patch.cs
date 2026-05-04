@@ -1,9 +1,10 @@
-﻿using Comfort.Common;
+﻿using System.Reflection;
+using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.Ragfair;
 using SPT.Reflection.Patching;
-using System.Reflection;
+using UIFixesInterop;
 using UnityEngine;
 
 namespace QuickSellFlea.Patches;
@@ -11,11 +12,9 @@ namespace QuickSellFlea.Patches;
 internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
 {
     private static PostPriceData _postPriceData;
-    private const string _roubleTpl = "5449016a4bdc2d6f028b456f";
-    private const string _dollarTpl = "5696686a4bdc2da3298b456a";
-    private const string _euroTpl = "569668774bdc2da2298b4568";
-    private static bool _canPost = true;
+    private static bool _priceReady;
 
+    public static bool CanPost = true;
 
     protected override MethodBase GetTargetMethod()
     {
@@ -28,7 +27,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         InventoryController ___inventoryController_0, Dictionary<EItemInfoButton, string> ___dictionary_0,
         ItemContextAbstractClass itemContext, ItemInfoInteractionsAbstractClass<EItemInfoButton> ___gclass3753_0)
     {
-        if (!_canPost)
+        if (!CanPost)
         {
             return;
         }
@@ -78,11 +77,8 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        if (RagFairClass.Settings.isOnlyFoundInRaidAllowed && !itemContext.Item.CanSellOnRagfairRaidRelated)
+        if (!CanSell(__instance.ItemContextAbstractClass.Item))
         {
-#if DEBUG
-            Logger.LogWarning("Flea only allows FiR, but item is not FiR, skipping"); 
-#endif
             return;
         }
 
@@ -110,22 +106,6 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        if (!itemContext.Item.CanSellOnRagfair)
-        {
-            return;
-        }
-
-        var parentItems = itemContext.Item.GetAllParentItems();
-        if (parentItems.Any(i => i is InventoryEquipment))
-        {
-            return;
-        }
-
-        if (itemContext.Item.IsNotEmpty())
-        {
-            return;
-        }
-
         if (itemContext.Item.Parent.Container.ParentItem.TemplateId == "55d7217a4bdc2d86028b456d") // fix for UI Fixes
         {
             return;
@@ -142,12 +122,44 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        _postPriceData = new(ragFair, gclass,
-            __instance, ___gclass3753_0,
-            ___dictionary_0, ___inventoryController_0, itemContext,
-            __instance.HandbookClass, Input.GetKey(KeyCode.LeftShift));
+        if (MultiSelect.Count > 1)
+        {
+            MultiSell.HandleMultiSelectSell(ragFair, __instance, ___inventoryController_0);
+            return;
+        }
+
+        var cont = (InteractionButtonsContainer)InteractionButtonsContainerHelper.InteractionButtonsContainerRef.GetValue(__instance.ContextMenu);
+        var button = cont.GetButton(new("QUICKOFFER", "Fetching...",
+            ClickQuickOffer, CacheResourcesPopAbstractClass.Pop<Sprite>("Characteristics/Icons/AddOffer")));
+
+        _postPriceData = new PostPriceData(ragFair, ___inventoryController_0, itemContext,
+            __instance.HandbookClass, Input.GetKey(KeyCode.LeftShift), button);
 
         ragFair.ISession.RagfairGetPrices(ReceivedPrices);
+    }
+
+    public static bool CanSell(Item item)
+    {
+        if (!item.CanSellOnRagfair)
+        {
+            return false;
+        }
+
+        if (item.IsNotEmpty())
+        {
+            return false;
+        }
+
+        if (RagFairClass.Settings.isOnlyFoundInRaidAllowed && !item.CanSellOnRagfairRaidRelated)
+        {
+#if DEBUG
+            Logger.LogWarning("Flea only allows FiR, but item is not FiR, skipping");
+#endif
+            return false;
+        }
+
+        var parentItems = item.GetAllParentItems();
+        return !parentItems.Any(i => i is InventoryEquipment);
     }
 
     private static void ReceivedPrices(Result<Dictionary<string, float>> result)
@@ -166,7 +178,8 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         }
 
         _postPriceData = default;
-        _canPost = true;
+        CanPost = true;
+        _priceReady = false;
     }
 
     private static void SetPrices(ItemMarketPrices prices)
@@ -180,7 +193,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        var averagePrice = _postPriceData.AveragePrice * _postPriceData.HandbookClass.StructuredItems[_roubleTpl].Data.Price;
+        var averagePrice = _postPriceData.AveragePrice * _postPriceData.HandbookClass.StructuredItems[ConversionUtils.RoubleTpl].Data.Price;
 #if DEBUG
         Logger.LogInfo($"Searching for posting price for {_postPriceData.Item.LocalizedShortName()}, with a stack amount of {_postPriceData.Item.StackObjectsCount}" +
             $" and requirementsPrice of {averagePrice}");
@@ -253,20 +266,25 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         }
 
 #if DEBUG
-        Logger.LogInfo($"Posting price was {postPrice} roubles, amount was {count} with {_postPriceData.Items.Count} stacks");
+        Logger.LogInfo($"Posting price was {postPrice}{symbol}, amount was {count} with {_postPriceData.Items.Count} stacks");
 #endif
         var label = count > 1 ? $"[{_postPriceData.Items.Count}s, {count}x] {postPrice.FormatSeparate()}" : $"{postPrice.FormatSeparate()}";
-        var dynamicInteractions = _postPriceData.InteractionsClass.Dictionary_0 ?? [];
-        dynamicInteractions[$"QUICK OFFER ({label} {symbol})"] = new("QUICKOFFER", $"QUICK OFFER ({label} {symbol})",
-            ClickQuickOffer, CacheResourcesPopAbstractClass.Pop<Sprite>("Characteristics/Icons/AddOffer"));
-
-        _postPriceData.ItemUiContext.ContextMenu.Show(_postPriceData.ItemUiContext.ContextMenu.transform.position,
-            _postPriceData.InteractionsClass, _postPriceData.ItemInfoDict, _postPriceData.Item);
+        var button = _postPriceData.SimpleContextMenuButton;
+        if (button != null)
+        {
+            button.SetText($"QUICK OFFER ({label} {symbol})");
+            _priceReady = true;
+        }
     }
 
     private static void ClickQuickOffer()
     {
-        _canPost = false;
+        if (!_priceReady)
+        {
+            return;
+        }
+
+        CanPost = false;
         var toPost = _postPriceData.Items.Select(i => i.Id)
             .ToArray();
 
@@ -283,21 +301,21 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             case EPostingCurrency.RUB:
                 postData = new()
                 {
-                    _tpl = _roubleTpl,
+                    _tpl = ConversionUtils.RoubleTpl,
                     count = _postPriceData.AveragePrice
                 };
                 break;
             case EPostingCurrency.USD:
                 postData = new()
                 {
-                    _tpl = _dollarTpl,
+                    _tpl = ConversionUtils.DollarTpl,
                     count = ConversionUtils.ConvertToUSD(_postPriceData.AveragePrice)
                 };
                 break;
             case EPostingCurrency.EUR:
                 postData = new()
                 {
-                    _tpl = _euroTpl,
+                    _tpl = ConversionUtils.EuroTpl,
                     count = ConversionUtils.ConvertToEUR(_postPriceData.AveragePrice)
                 };
                 break;

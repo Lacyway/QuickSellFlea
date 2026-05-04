@@ -11,9 +11,10 @@ using UnityEngine;
 namespace QuickSellFlea;
 
 [BepInPlugin("com.lacyway.csf", "QuickSellFlea", PluginVersion)]
+[BepInDependency("Tyfon.UIFixes", BepInDependency.DependencyFlags.SoftDependency)]
 internal class CSF_Plugin : BaseUnityPlugin
 {
-    public const string PluginVersion = "1.2.0";
+    public const string PluginVersion = "1.3.0";
 
     internal static ManualLogSource CSF_Logger;
     private static readonly EPostingCurrency[] _currencyValues =
@@ -71,30 +72,26 @@ internal class CSF_Plugin : BaseUnityPlugin
     }
 }
 
-public enum EPostingCurrency : int
+public enum EPostingCurrency
 {
     RUB = 1,
     USD = 120,
     EUR = 133
 }
 
-public struct PostPriceData(RagFairClass ragFair, ContextInteractionsAbstractClass interactionsClass,
-        ItemUiContext itemUiContext, ItemInfoInteractionsAbstractClass<EItemInfoButton> infoInteractionsClass,
-        Dictionary<EItemInfoButton, string> itemInfoDict, InventoryController inventoryController,
-        ItemContextAbstractClass itemContext, HandbookClass handbookClass, bool selectAll)
+public struct PostPriceData(RagFairClass ragFair, InventoryController inventoryController,
+        ItemContextAbstractClass itemContext, HandbookClass handbookClass, bool selectAll,
+        SimpleContextMenuButton button)
 {
     public readonly Item Item => ItemContext.Item;
 
     public readonly RagFairClass RagFair = ragFair;
-    public readonly ContextInteractionsAbstractClass InteractionsClass = interactionsClass;
-    public readonly ItemUiContext ItemUiContext = itemUiContext;
-    public readonly ItemInfoInteractionsAbstractClass<EItemInfoButton> InfoInteractionsClass = infoInteractionsClass;
-    public readonly Dictionary<EItemInfoButton, string> ItemInfoDict = itemInfoDict;
     public readonly InventoryController InventoryController = inventoryController;
     public readonly ItemContextAbstractClass ItemContext = itemContext;
     public readonly HandbookClass HandbookClass = handbookClass;
     public readonly bool SelectAll = selectAll;
     public readonly Dictionary<Item, ItemAddress> OfferDict = [];
+    public readonly SimpleContextMenuButton SimpleContextMenuButton = button;
     public List<Item> Items;
 
     public float AveragePrice;
