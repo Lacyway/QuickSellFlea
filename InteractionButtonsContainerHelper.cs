@@ -10,10 +10,10 @@ namespace QuickSellFlea;
 internal static class InteractionButtonsContainerHelper
 {
     public static readonly FieldInfo InteractionButtonsContainerRef = AccessTools.Field(typeof(SimpleContextMenu), "_interactionButtonsContainer");
+
     private static readonly FieldInfo _buttonsTemplateRef = AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonTemplate");
     private static readonly FieldInfo _buttonsContainerRef = AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer");
     private static readonly FieldInfo _tmpTextRef = AccessTools.Field(typeof(ContextMenuButton), "_text");
-
 
     public static SimpleContextMenuButton GetButton(this InteractionButtonsContainer container, DynamicInteractionClass interaction)
     {

@@ -3,6 +3,7 @@ using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.Ragfair;
 using QuickSellFlea.Patches;
+using QuickSellFlea.Utils;
 using UIFixesInterop;
 using UnityEngine;
 
@@ -53,10 +54,10 @@ internal static class MultiSell
         _simpleContextMenuButton = _interactionButtonsContainer.GetButton(new("QUICKOFFER", "Fetching...",
             ClickQuickOffer, CacheResourcesPopAbstractClass.Pop<Sprite>("Characteristics/Icons/AddOffer")));
 
-        _itemsToSell.AddRange(MultiSelect.Items.Where(ItemUiContext_GetItemContextInteractions_Patch.CanSell));
+        _itemsToSell.AddRange(MultiSelect.Items.Where(i => i.CanSell()));
 
         var availablePosts = _ragFair.MaxOffersCount - _ragFair.MyOffersCount;
-        if (_itemsToSell.Count > availablePosts)
+        if (!CSF_Plugin.BypassLimit.Value && _itemsToSell.Count > availablePosts)
         {
 #if DEBUG
             CSF_Plugin.CSF_Logger.LogWarning($"Tried to post {_itemsToSell.Count} items but only {availablePosts} were available to be posted");
@@ -134,7 +135,7 @@ internal static class MultiSell
 
         if (_simpleContextMenuButton != null)
         {
-            _simpleContextMenuButton.SetText($"QUICK OFFER ({label} {symbol})");
+            _simpleContextMenuButton.SetText($"QUICK OFFER {_itemsToSell.Count}x ({label} {symbol})");
             _priceReady = true;
         }
     }

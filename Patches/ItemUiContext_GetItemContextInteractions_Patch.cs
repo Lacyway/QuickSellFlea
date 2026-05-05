@@ -3,6 +3,7 @@ using Comfort.Common;
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.Ragfair;
+using QuickSellFlea.Utils;
 using SPT.Reflection.Patching;
 using UIFixesInterop;
 using UnityEngine;
@@ -48,7 +49,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         Logger.LogInfo("Patch running");
 #endif
 
-        if (!Input.GetKey(KeyCode.LeftControl))
+        if (!Input.GetKey(CSF_Plugin.Hotkey.Value.MainKey))
         {
             return;
         }
@@ -77,7 +78,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        if (!CanSell(__instance.ItemContextAbstractClass.Item))
+        if (!__instance.ItemContextAbstractClass.Item.CanSell())
         {
             return;
         }
@@ -117,7 +118,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        if (ragFair.MyOffersCount == ragFair.MaxOffersCount)
+        if (!CSF_Plugin.BypassLimit.Value && ragFair.MyOffersCount == ragFair.MaxOffersCount)
         {
             return;
         }
@@ -136,30 +137,6 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             __instance.HandbookClass, Input.GetKey(KeyCode.LeftShift), button);
 
         ragFair.ISession.RagfairGetPrices(ReceivedPrices);
-    }
-
-    public static bool CanSell(Item item)
-    {
-        if (!item.CanSellOnRagfair)
-        {
-            return false;
-        }
-
-        if (item.IsNotEmpty())
-        {
-            return false;
-        }
-
-        if (RagFairClass.Settings.isOnlyFoundInRaidAllowed && !item.CanSellOnRagfairRaidRelated)
-        {
-#if DEBUG
-            Logger.LogWarning("Flea only allows FiR, but item is not FiR, skipping");
-#endif
-            return false;
-        }
-
-        var parentItems = item.GetAllParentItems();
-        return !parentItems.Any(i => i is InventoryEquipment);
     }
 
     private static void ReceivedPrices(Result<Dictionary<string, float>> result)

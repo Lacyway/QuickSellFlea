@@ -1,4 +1,4 @@
-﻿namespace QuickSellFlea;
+﻿namespace QuickSellFlea.Utils;
 
 public static class ConversionUtils
 {

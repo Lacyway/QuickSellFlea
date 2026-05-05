@@ -20,17 +20,23 @@ internal class CSF_Plugin : BaseUnityPlugin
     private static readonly EPostingCurrency[] _currencyValues =
         (EPostingCurrency[])Enum.GetValues(typeof(EPostingCurrency));
 
+    public static ConfigEntry<KeyboardShortcut> Hotkey { get; set; }
     public static ConfigEntry<bool> ShowListingPrice { get; set; }
+    public static ConfigEntry<bool> BypassLimit { get; set; }
     public static ConfigEntry<EPostingCurrency> PostingCurrency { get; set; }
     public static ConfigEntry<KeyboardShortcut> ChangeCurrencyKey { get; set; }
 
     protected void Awake()
     {
         CSF_Logger = Logger;
-        CSF_Logger.LogInfo($"{nameof(CSF_Plugin)} has been loaded.");
+        CSF_Logger.LogInfo($"{nameof(CSF_Plugin)} v{PluginVersion} has been loaded.");
 
+        Hotkey = Config.Bind("QuickSellFlea", "Hot key", new KeyboardShortcut(KeyCode.LeftControl),
+            new ConfigDescription("The key held to show the quick sell interaction"));
         ShowListingPrice = Config.Bind("QuickSellFlea", "Show Listing Price", false,
             new ConfigDescription("Whether to show the listing price in the tooltip, otherwise the total sell value (of all items in the stack, if stackable)"));
+        BypassLimit = Config.Bind("QuickSellFlea", "Bypass Limit", false,
+            new ConfigDescription("Whether to flea posting limits should be ignored"));
         PostingCurrency = Config.Bind("QuickSellFlea", "Posting Currency", EPostingCurrency.RUB,
             new ConfigDescription("The currency to post the listings in"));
         ChangeCurrencyKey = Config.Bind("QuickSellFlea", "Change Currency Key", new KeyboardShortcut(KeyCode.Insert),
