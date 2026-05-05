@@ -14,7 +14,7 @@ namespace QuickSellFlea;
 [BepInDependency("Tyfon.UIFixes", BepInDependency.DependencyFlags.SoftDependency)]
 internal class CSF_Plugin : BaseUnityPlugin
 {
-    public const string PluginVersion = "1.3.0";
+    public const string PluginVersion = "1.3.1";
 
     internal static ManualLogSource CSF_Logger;
     private static readonly EPostingCurrency[] _currencyValues =
@@ -31,7 +31,7 @@ internal class CSF_Plugin : BaseUnityPlugin
         CSF_Logger = Logger;
         CSF_Logger.LogInfo($"{nameof(CSF_Plugin)} v{PluginVersion} has been loaded.");
 
-        Hotkey = Config.Bind("QuickSellFlea", "Hot key", new KeyboardShortcut(KeyCode.LeftControl),
+        Hotkey = Config.Bind("QuickSellFlea", "Hotkey", new KeyboardShortcut(KeyCode.LeftControl),
             new ConfigDescription("The key held to show the quick sell interaction"));
         ShowListingPrice = Config.Bind("QuickSellFlea", "Show Listing Price", false,
             new ConfigDescription("Whether to show the listing price in the tooltip, otherwise the total sell value (of all items in the stack, if stackable)"));
