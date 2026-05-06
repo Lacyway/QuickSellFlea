@@ -147,11 +147,14 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
 
     private static void HandlePostAddOffer()
     {
-        foreach ((var item, var address) in _postPriceData.OfferDict)
+        if (!CSF_Plugin.SkipMode.Value)
         {
-            address.RaiseRemoveEvent(item,
-                address.Equals(item.CurrentAddress) ? CommandStatus.Failed : CommandStatus.Succeed,
-                _postPriceData.InventoryController);
+            foreach ((var item, var address) in _postPriceData.OfferDict)
+            {
+                address.RaiseRemoveEvent(item,
+                    address.Equals(item.CurrentAddress) ? CommandStatus.Failed : CommandStatus.Succeed,
+                    _postPriceData.InventoryController);
+            }
         }
 
         _postPriceData = default;
@@ -269,7 +272,10 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         {
             var item = _postPriceData.Items[i];
             _postPriceData.OfferDict.Add(item, item.Parent);
-            _postPriceData.Item.Parent.RaiseRemoveEvent(item, CommandStatus.Begin, _postPriceData.InventoryController);
+            if (!CSF_Plugin.SkipMode.Value)
+            {
+                _postPriceData.Item.Parent.RaiseRemoveEvent(item, CommandStatus.Begin, _postPriceData.InventoryController);
+            }
         }
 
         GClass2335 postData = null;

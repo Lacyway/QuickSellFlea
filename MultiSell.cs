@@ -182,7 +182,10 @@ internal static class MultiSell
             }
 
             _offerDict.Add(item, item.Parent);
-            item.Parent.RaiseRemoveEvent(item, CommandStatus.Begin, _inventoryController);
+            if (!CSF_Plugin.SkipMode.Value)
+            {
+                item.Parent.RaiseRemoveEvent(item, CommandStatus.Begin, _inventoryController);
+            }
             _ragFair.AddOffer(false, [item.Id], [postData], HandlePostAddOffer);
         }
 
@@ -197,11 +200,14 @@ internal static class MultiSell
 #if DEBUG
             CSF_Plugin.CSF_Logger.LogInfo("All items posted");
 #endif
-            foreach ((var item, var address) in _offerDict)
+            if (!CSF_Plugin.SkipMode.Value)
             {
-                address.RaiseRemoveEvent(item,
-                    address.Equals(item.CurrentAddress) ? CommandStatus.Failed : CommandStatus.Succeed,
-                    _inventoryController);
+                foreach ((var item, var address) in _offerDict)
+                {
+                    address.RaiseRemoveEvent(item,
+                        address.Equals(item.CurrentAddress) ? CommandStatus.Failed : CommandStatus.Succeed,
+                        _inventoryController);
+                }
             }
 
             Reset();

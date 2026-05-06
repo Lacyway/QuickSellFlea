@@ -23,6 +23,7 @@ internal class CSF_Plugin : BaseUnityPlugin
     public static ConfigEntry<KeyboardShortcut> Hotkey { get; set; }
     public static ConfigEntry<bool> ShowListingPrice { get; set; }
     public static ConfigEntry<bool> BypassLimit { get; set; }
+    public static ConfigEntry<bool> SkipMode { get; set; }
     public static ConfigEntry<EPostingCurrency> PostingCurrency { get; set; }
     public static ConfigEntry<KeyboardShortcut> ChangeCurrencyKey { get; set; }
 
@@ -37,6 +38,8 @@ internal class CSF_Plugin : BaseUnityPlugin
             new ConfigDescription("Whether to show the listing price in the tooltip, otherwise the total sell value (of all items in the stack, if stackable)"));
         BypassLimit = Config.Bind("QuickSellFlea", "Bypass Limit", false,
             new ConfigDescription("Whether to flea posting limits should be ignored"));
+        SkipMode = Config.Bind("QuickSellFlea", "Skip Mode", true,
+            new ConfigDescription("Disables vanilla blinking effect when waiting for the callback from the server.\nEnabled by default to bypass a bug in the SPT server where aforementioned callback sometimes never triggers, leaving some items blinking infinitely"));
         PostingCurrency = Config.Bind("QuickSellFlea", "Posting Currency", EPostingCurrency.RUB,
             new ConfigDescription("The currency to post the listings in"));
         ChangeCurrencyKey = Config.Bind("QuickSellFlea", "Change Currency Key", new KeyboardShortcut(KeyCode.Insert),
