@@ -3,8 +3,10 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using Comfort.Common;
 using EFT.Communications;
+using EFT.HandBook;
 using EFT.InventoryLogic;
 using EFT.UI;
+using EFT.UI.Ragfair;
 using QuickSellFlea.Patches;
 using UnityEngine;
 
@@ -60,9 +62,9 @@ internal class CSF_Plugin : BaseUnityPlugin
     {
         var currentIndex = Array.IndexOf(_currencyValues, PostingCurrency.Value);
         PostingCurrency.Value = _currencyValues[(currentIndex + 1) % _currencyValues.Length];
-        if (Singleton<NotificationManagerClass>.Instantiated)
+        if (Singleton<NotificationManager>.Instantiated)
         {
-            NotificationManagerClass.DisplayMessageNotification($"Currency set to {PostingCurrency.Value}",
+            NotificationManager.DisplayMessageNotification($"Currency set to {PostingCurrency.Value}",
                 iconType: ENotificationIconType.Note);
         }
     }
@@ -88,16 +90,16 @@ public enum EPostingCurrency
     EUR = 133
 }
 
-public struct PostPriceData(RagFairClass ragFair, InventoryController inventoryController,
-        ItemContextAbstractClass itemContext, HandbookClass handbookClass, bool selectAll,
+public struct PostPriceData(RagFair ragFair, InventoryController inventoryController,
+        ItemContext itemContext, Handbook handbookClass, bool selectAll,
         SimpleContextMenuButton button)
 {
     public readonly Item Item => ItemContext.Item;
 
-    public readonly RagFairClass RagFair = ragFair;
+    public readonly RagFair RagFair = ragFair;
     public readonly InventoryController InventoryController = inventoryController;
-    public readonly ItemContextAbstractClass ItemContext = itemContext;
-    public readonly HandbookClass HandbookClass = handbookClass;
+    public readonly ItemContext ItemContext = itemContext;
+    public readonly Handbook HandbookClass = handbookClass;
     public readonly bool SelectAll = selectAll;
     public readonly Dictionary<Item, ItemAddress> OfferDict = [];
     public readonly SimpleContextMenuButton SimpleContextMenuButton = button;

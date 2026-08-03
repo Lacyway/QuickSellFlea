@@ -1,8 +1,11 @@
 ﻿using System.Reflection;
 using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
+using EFT.Trading;
 using EFT.UI;
 using EFT.UI.Ragfair;
+using EFT.Utilities;
 using QuickSellFlea.Utils;
 using SPT.Reflection.Patching;
 using UIFixesInterop;
@@ -26,7 +29,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
     [PatchPostfix]
     public static void Postfix(ItemUiContext __instance,
         InventoryController ___inventoryController_0, Dictionary<EItemInfoButton, string> ___dictionary_0,
-        ItemContextAbstractClass itemContext, ItemInfoInteractionsAbstractClass<EItemInfoButton> ___gclass3753_0)
+        ItemContext itemContext, ContextInteractions<EItemInfoButton> ___currentContextInteractions)
     {
         if (!CanPost)
         {
@@ -34,13 +37,13 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        if (GClass2340.InRaid)
+        if (InGameStatus.InRaid)
         {
             return;
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        if (___gclass3753_0 == null)
+        if (___currentContextInteractions == null)
         {
             return;
         }
@@ -78,20 +81,20 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        if (!__instance.ItemContextAbstractClass.Item.CanSell())
+        if (!__instance.CurrentItemContext.Item.CanSell())
         {
             return;
         }
 
-        if (___gclass3753_0 is not ContextInteractionsAbstractClass gclass)
+        if (___currentContextInteractions is not BaseItemContextInteractions baseItemContextInteractions)
         {
 #if DEBUG
-            Logger.LogWarning($"Was not ContextInteractionsAbstractClass, was {___gclass3753_0.GetType().Name}");
+            Logger.LogWarning($"Was not ContextInteractionsAbstractClass, was {___currentContextInteractions.GetType().Name}");
 #endif
             return;
         }
 
-        if (!___gclass3753_0.AllInteractions.Contains(EItemInfoButton.AddOffer))
+        if (!___currentContextInteractions.AllInteractions.Contains(EItemInfoButton.AddOffer))
         {
 #if DEBUG
             Logger.LogWarning("Does not contain add to flea, skipping");
@@ -131,17 +134,17 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
 
         var cont = (InteractionButtonsContainer)InteractionButtonsContainerHelper.InteractionButtonsContainerRef.GetValue(__instance.ContextMenu);
         var button = cont.GetButton(new("QUICKOFFER", "Fetching...",
-            ClickQuickOffer, CacheResourcesPopAbstractClass.Pop<Sprite>("Characteristics/Icons/AddOffer")));
+            ClickQuickOffer, ResourcesCache.Pop<Sprite>("Characteristics/Icons/AddOffer")));
 
         _postPriceData = new PostPriceData(ragFair, ___inventoryController_0, itemContext,
-            __instance.HandbookClass, Input.GetKey(KeyCode.LeftShift), button);
+            __instance.Handbook, Input.GetKey(KeyCode.LeftShift), button);
 
-        ragFair.ISession.RagfairGetPrices(ReceivedPrices);
+        ragFair._tradingSession.RagfairGetPrices(ReceivedPrices);
     }
 
     private static void ReceivedPrices(Result<Dictionary<string, float>> result)
     {
-        _postPriceData.RagFair.method_35(result);
+        _postPriceData.RagFair.CG_RefreshItemPrices(result);
         _postPriceData.RagFair.GetMarketPrices(_postPriceData.Item.TemplateId, SetPrices);
     }
 
@@ -188,10 +191,10 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             [
                 _postPriceData.InventoryController.Inventory.Stash
             ];
-            using RagfairOfferSellHelperClass helper = new(array[0].Grids[0], _postPriceData.InventoryController);
+            using RagfairNewOfferContext helper = new(array[0].Grids[0], _postPriceData.InventoryController);
             var item = _postPriceData.Item;
             _postPriceData.Items = [.. _postPriceData.Item.Parent.Container.Items.Where(i => i.Compare(_postPriceData.Item)
-                && RagFairClass.CanBeSelectedAtRagfair(item, helper.TraderControllerClass, out var error))
+                && RagFair.CanBeSelectedAtRagfair(item, helper._itemController, out var error))
                 .OrderBy(i =>
                 {
                     if (i != item)
@@ -217,7 +220,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         if (CSF_Plugin.ShowListingPrice.Value)
         {
             postPrice = Mathf.CeilToInt(
-                (float)FleaTaxCalculatorAbstractClass.CalculateTaxPrice(_postPriceData.Item, count,
+                (float)PriceCalculator.CalculateTaxPrice(_postPriceData.Item, count,
                 averagePrice, false)
             );
         }
@@ -278,7 +281,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             }
         }
 
-        GClass2335 postData = null;
+        BarterTemplate postData = null;
         switch (CSF_Plugin.PostingCurrency.Value)
         {
             case EPostingCurrency.RUB:

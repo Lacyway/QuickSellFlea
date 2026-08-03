@@ -1,4 +1,5 @@
 ﻿using EFT.InventoryLogic;
+using EFT.UI.Ragfair;
 
 namespace QuickSellFlea.Utils;
 
@@ -16,7 +17,7 @@ internal static class ItemUtils
             return false;
         }
 
-        if (RagFairClass.Settings.isOnlyFoundInRaidAllowed && !item.CanSellOnRagfairRaidRelated)
+        if (RagFair.Settings.isOnlyFoundInRaidAllowed && !item.CanSellOnRagfairRaidRelated)
         {
 #if DEBUG
             CSF_Plugin.CSF_Logger.LogWarning("Flea only allows FiR, but item is not FiR, skipping");

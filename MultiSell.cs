@@ -1,7 +1,9 @@
 ﻿using Comfort.Common;
+using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.Ragfair;
+using EFT.Utilities;
 using QuickSellFlea.Patches;
 using QuickSellFlea.Utils;
 using UIFixesInterop;
@@ -13,7 +15,7 @@ internal static class MultiSell
 {
     public static bool CanFetch = true;
 
-    private static RagFairClass _ragFair;
+    private static RagFair _ragFair;
     private static InventoryController _inventoryController;
     private static InteractionButtonsContainer _interactionButtonsContainer;
     private static SimpleContextMenuButton _simpleContextMenuButton;
@@ -41,7 +43,7 @@ internal static class MultiSell
         ItemUiContext_GetItemContextInteractions_Patch.CanPost = true;
     }
 
-    internal static void HandleMultiSelectSell(RagFairClass ragFair, ItemUiContext instance, InventoryController inventoryController_0)
+    internal static void HandleMultiSelectSell(RagFair ragFair, ItemUiContext instance, InventoryController inventoryController_0)
     {
         Reset();
 
@@ -52,7 +54,7 @@ internal static class MultiSell
 
         _interactionButtonsContainer = (InteractionButtonsContainer)InteractionButtonsContainerHelper.InteractionButtonsContainerRef.GetValue(instance.ContextMenu);
         _simpleContextMenuButton = _interactionButtonsContainer.GetButton(new("QUICKOFFER", "Fetching...",
-            ClickQuickOffer, CacheResourcesPopAbstractClass.Pop<Sprite>("Characteristics/Icons/AddOffer")));
+            ClickQuickOffer, ResourcesCache.Pop<Sprite>("Characteristics/Icons/AddOffer")));
 
         _itemsToSell.AddRange(MultiSelect.Items.Where(i => i.CanSell()));
 
@@ -68,7 +70,7 @@ internal static class MultiSell
             _itemsToSell.RemoveRange(startIdx, countToRemove);
         }
 
-        ragFair.ISession.RagfairGetPrices(ReceivedPrices);
+        ragFair._tradingSession.RagfairGetPrices(ReceivedPrices);
     }
 
     private static void ReceivedPrices(Result<Dictionary<string, float>> result)
@@ -78,7 +80,7 @@ internal static class MultiSell
             throw new NullReferenceException("RagFair was null?");
         }
 
-        _ragFair.method_35(result);
+        _ragFair.CG_RefreshItemPrices(result);
 
         for (var i = 0; i < _itemsToSell.Count; i++)
         {
@@ -155,7 +157,7 @@ internal static class MultiSell
                 throw new Exception("Price was missing");
             }
 
-            GClass2335 postData = null;
+            BarterTemplate postData = null;
             switch (CSF_Plugin.PostingCurrency.Value)
             {
                 case EPostingCurrency.RUB:

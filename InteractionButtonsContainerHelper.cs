@@ -15,13 +15,13 @@ internal static class InteractionButtonsContainerHelper
     private static readonly FieldInfo _buttonsContainerRef = AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer");
     private static readonly FieldInfo _tmpTextRef = AccessTools.Field(typeof(ContextMenuButton), "_text");
 
-    public static SimpleContextMenuButton GetButton(this InteractionButtonsContainer container, DynamicInteractionClass interaction)
+    public static SimpleContextMenuButton GetButton(this InteractionButtonsContainer container, DynamicContextInteraction interaction)
     {
-        var simpleContextMenuButton = container.method_1(interaction.Key, interaction.Key,
+        var simpleContextMenuButton = container.CreateContextButton(interaction.Key, interaction.Key,
             (SimpleContextMenuButton)_buttonsTemplateRef.GetValue(container), (RectTransform)_buttonsContainerRef.GetValue(container),
-            interaction.Icon, new Action(interaction.Execute), container.method_4, false, true);
+            interaction.Icon, new Action(interaction.Execute), container.CloseSubMenu, false, true);
         simpleContextMenuButton.SetButtonInteraction(SuccessfulResult.New);
-        container.method_5(simpleContextMenuButton);
+        container.BindButton(simpleContextMenuButton);
 
         return simpleContextMenuButton;
     }
