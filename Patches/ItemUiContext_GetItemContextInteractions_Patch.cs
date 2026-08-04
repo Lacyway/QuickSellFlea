@@ -28,8 +28,8 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
 
     [PatchPostfix]
     public static void Postfix(ItemUiContext __instance,
-        InventoryController ___inventoryController_0, Dictionary<EItemInfoButton, string> ___dictionary_0,
-        ItemContext itemContext, ContextInteractions<EItemInfoButton> ___currentContextInteractions)
+        InventoryController ____inventoryController, Dictionary<EItemInfoButton, string> ____contextMenuCustomNames,
+        ItemContext itemContext, ContextInteractions<EItemInfoButton> ____currentContextInteractions)
     {
         if (!CanPost)
         {
@@ -43,7 +43,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        if (___currentContextInteractions == null)
+        if (____currentContextInteractions == null)
         {
             return;
         }
@@ -65,7 +65,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        if (___inventoryController_0 == null)
+        if (____inventoryController == null)
         {
 #if DEBUG
             Logger.LogWarning("InventoryController was null");
@@ -86,15 +86,15 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             return;
         }
 
-        if (___currentContextInteractions is not BaseItemContextInteractions baseItemContextInteractions)
+        if (____currentContextInteractions is not BaseItemContextInteractions baseItemContextInteractions)
         {
 #if DEBUG
-            Logger.LogWarning($"Was not ContextInteractionsAbstractClass, was {___currentContextInteractions.GetType().Name}");
+            Logger.LogWarning($"Was not ContextInteractionsAbstractClass, was {____currentContextInteractions.GetType().Name}");
 #endif
             return;
         }
 
-        if (!___currentContextInteractions.AllInteractions.Contains(EItemInfoButton.AddOffer))
+        if (!____currentContextInteractions.AllInteractions.Contains(EItemInfoButton.AddOffer))
         {
 #if DEBUG
             Logger.LogWarning("Does not contain add to flea, skipping");
@@ -128,7 +128,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
 
         if (MultiSelect.Count > 1)
         {
-            MultiSell.HandleMultiSelectSell(ragFair, __instance, ___inventoryController_0);
+            MultiSell.HandleMultiSelectSell(ragFair, __instance, ____inventoryController);
             return;
         }
 
@@ -136,7 +136,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
         var button = cont.GetButton(new("QUICKOFFER", "Fetching...",
             ClickQuickOffer, ResourcesCache.Pop<Sprite>("Characteristics/Icons/AddOffer")));
 
-        _postPriceData = new PostPriceData(ragFair, ___inventoryController_0, itemContext,
+        _postPriceData = new PostPriceData(ragFair, ____inventoryController, itemContext,
             __instance.Handbook, Input.GetKey(KeyCode.LeftShift), button);
 
         ragFair._tradingSession.RagfairGetPrices(ReceivedPrices);

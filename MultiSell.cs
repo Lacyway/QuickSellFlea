@@ -43,14 +43,14 @@ internal static class MultiSell
         ItemUiContext_GetItemContextInteractions_Patch.CanPost = true;
     }
 
-    internal static void HandleMultiSelectSell(RagFair ragFair, ItemUiContext instance, InventoryController inventoryController_0)
+    internal static void HandleMultiSelectSell(RagFair ragFair, ItemUiContext instance, InventoryController inventoryController)
     {
         Reset();
 
         CanFetch = false;
 
         _ragFair = ragFair;
-        _inventoryController = inventoryController_0;
+        _inventoryController = inventoryController;
 
         _interactionButtonsContainer = (InteractionButtonsContainer)InteractionButtonsContainerHelper.InteractionButtonsContainerRef.GetValue(instance.ContextMenu);
         _simpleContextMenuButton = _interactionButtonsContainer.GetButton(new("QUICKOFFER", "Fetching...",
