@@ -13,10 +13,10 @@ using UnityEngine;
 namespace QuickSellFlea;
 
 [BepInPlugin("com.lacyway.csf", "QuickSellFlea", PluginVersion)]
-[BepInDependency("Tyfon.UIFixes", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("com.tyfon.uifixes", BepInDependency.DependencyFlags.SoftDependency)]
 internal class CSF_Plugin : BaseUnityPlugin
 {
-    public const string PluginVersion = "1.4.1";
+    public const string PluginVersion = "1.4.2";
 
     internal static ManualLogSource CSF_Logger;
     private static readonly EPostingCurrency[] _currencyValues =
