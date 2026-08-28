@@ -100,7 +100,7 @@ internal static class MultiSelect
         {
             if (!_uIFixesLoaded.HasValue)
             {
-                var present = Chainloader.PluginInfos.TryGetValue("Tyfon.UIFixes", out var pluginInfo);
+                var present = Chainloader.PluginInfos.TryGetValue("com.tyfon.uifixes", out var pluginInfo);
                 _uIFixesLoaded = present && pluginInfo.Metadata.Version >= _requiredVersion;
 
                 if (_uIFixesLoaded.Value)
