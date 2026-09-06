@@ -16,7 +16,7 @@ namespace QuickSellFlea;
 [BepInDependency("com.tyfon.uifixes", BepInDependency.DependencyFlags.SoftDependency)]
 internal class CSF_Plugin : BaseUnityPlugin
 {
-    public const string PluginVersion = "1.4.3";
+    public const string PluginVersion = "1.4.4";
 
     internal static ManualLogSource CSF_Logger;
     private static readonly EPostingCurrency[] _currencyValues =

@@ -12,6 +12,11 @@ internal static class ItemUtils
             return false;
         }
 
+        if (item.PinLockState != EItemPinLockState.Free)
+        {
+            return false;
+        }
+
         if (item.IsNotEmpty())
         {
             return false;
