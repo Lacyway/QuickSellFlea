@@ -194,6 +194,7 @@ internal class ItemUiContext_GetItemContextInteractions_Patch : ModulePatch
             using RagfairNewOfferContext helper = new(array[0].Grids[0], _postPriceData.InventoryController);
             var item = _postPriceData.Item;
             _postPriceData.Items = [.. _postPriceData.Item.Parent.Container.Items.Where(i => i.Compare(_postPriceData.Item)
+                && i.CanSell()
                 && RagFair.CanBeSelectedAtRagfair(item, helper._itemController, out var error))
                 .OrderBy(i =>
                 {
